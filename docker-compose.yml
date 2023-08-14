@@ -1,0 +1,30 @@
+# Mendefinisikan versi docker compose
+version: '3.7'
+
+# Mendefinisikan services yang akan digunakan
+services:
+  # Service 1 dengan nama item-app
+  item-app:
+    # mengunakan image dari github packages dengan nama item-app dan tag v1
+    image: ghcr.io/hann315/item-app:v1
+    # restart selalu jika container mati karena server restart, dll
+    restart: always
+    # port mapping dari 8080 di container ke port 80 di komputer host
+    ports:
+      - 80:8080
+    # tunggu item-db selesai sebelum memulai service ini
+    depends_on:
+      - item-db
+  # service 2 dengan nama item-db
+  item-db:
+    # menggunakan image mongo 3 dari docker hub dengan tag 3
+    image: mongo:3
+    # restart selalu jika container mati karena server restart, dll
+    restart: always
+    # gunakan volume dengan nama app-db dan bind dengan direktori /data/db di container
+    volumes:
+      - app-db:/data/db
+
+# volume ini akan dibuat secara otomatis jika belum ada
+volumes:
+  app-db:
