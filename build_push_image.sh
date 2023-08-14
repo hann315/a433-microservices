@@ -13,7 +13,7 @@ docker tag item-app:v1 ghcr.io/hann315/item-app:v1
 echo '\n\n' #print line baru
 
 # Melakukan login ke github packages dengan menggunakan token
-export GITHUB_PACKAGES_TOKEN=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
+export GITHUB_PACKAGES_TOKEN=
 
 # Login ke github packages
 echo $GITHUB_PACKAGES_TOKEN | docker login ghcr.io -u hann315 --password-stdin
