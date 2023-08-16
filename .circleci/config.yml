@@ -34,4 +34,15 @@ jobs:
       - run: echo $GITHUB_TOKEN | docker login ghcr.io -u hann315 --password-stdin
       # Push image ke github packages
       - run: docker push ghcr.io/hann315/karsajobs:latest
-      
+
+workflows:
+  # Workflow backend akan menjalankan 3 job secara berurutan, yaitu lint-backend-dockerfile, test-app, dan build-app-karsajobs
+  backend-workflows:
+    jobs:
+      - lint-backend-dockerfile
+      - test-app:
+          requires:
+            - lint-backend-dockerfile
+      - build-app-karsajobs:
+          requires:
+            - test-app
