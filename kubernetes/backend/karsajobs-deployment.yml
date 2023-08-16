@@ -1,0 +1,48 @@
+# Membuat sebuah deployment k8s dengan nama 'karsajobs-backend' dan dua label, yaitu 'app: karsajobs' dan 'type: backend'
+# deployment ini akan membuat pod yang berisi 1 replica dan setiap pod akan memiliki dua label, yaitu 'app: karsajobs' dan 'type: backend'.
+
+# Label type:backend akan digunakan sebagai selector di 'karsajobs-service.yml'.
+# deployment ini akan membuat pod yang berada pada container.
+# Container akan menggunakan image dari 'ghcr.io/hann315/karsajobs:latest' dan akan memiliki nama dengan prefix 'karsajobs-backend-server', dan
+# container akan mengekspos port 8080 ke host (pod) dan akan juga memetakan port 8080 di container.
+# Setiap container akan memiliki beberapa env variables, seperti APP_PORT, MONGO_PORT, MONGO_USER, DAN MONGO_PASS
+# MONGO_USER dan MONGO_PASS didapatkan dari secret yang didefinisikan di file 'mongodb/mongo-secret.yml'
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karsajobs-backend
+  labels:
+    app: karsajobs
+    type: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      type: backend
+  template:
+    metadata:
+      labels:
+        app: karsajobs
+        type: backend
+    spec:
+      containers:
+        - name: karsajobs-backend-server
+          image: ghcr.io/hann315/karsajobs:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: APP_PORT
+              value: '8080'
+            - name: MONGO_HOST
+              value: mongodb
+            - name: MONGO_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: MONGO_ROOT_USERNAME
+            - name: MONGO_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-secret
+                  key: MONGO_ROOT_PASSWORD

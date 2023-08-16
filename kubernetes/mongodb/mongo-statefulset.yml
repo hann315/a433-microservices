@@ -1,0 +1,60 @@
+# Membuat StatefulSet k8s dengan nama 'mongodb'
+# StatefulSet ini akan membuat 1 pod (1 replica)
+# StatefulSet ini akan menggunakan headless service bernama 'mongodb' dan akan membuat pod dengan label 'type:db'.
+# Container yang dibuat di pod akan menggunakan image 'mongo:latest' dan akan diberi nama 'mongodb'.
+# Setiap container akan memiliki env variable: 'MONGO_INITDB_ROOT_USERNAME_FILE' dan 'MONGO_INITDB_ROOT_PASSWORD_FILE'
+# Value dari env variable diambil dari direktori /etc/mongo-credentials
+# Direktori ini di-mount dari volume 'mongodb-secret-mount'
+# Selain itu, container juga akan memiliki direktori '/data/db' yang di-mount dari pv 'mongodb-persistent-storage'
+# Terakhir, container juga akan memiliki direktori '/config' yang di-mount dari volume 'mongodb-config-mount',
+# File 'mongo.conf' akan dibuat di direktori tersebut dan akan berisi value dari configmap 'mongodb-config'.
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+spec:
+  selector:
+    matchLabels:
+      type: db
+  serviceName: mongodb
+  replicas: 1
+  minReadySeconds: 10
+  template:
+    metadata:
+      labels:
+        type: db
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - image: mongo:latest
+          name: mongodb
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME_FILE
+              value: /etc/mongo-credentials/MONGO_ROOT_USERNAME
+            - name: MONGO_INITDB_ROOT_PASSWORD_FILE
+              value: /etc/mongo-credentials/MONGO_ROOT_PASSWORD
+          ports:
+            - containerPort: 27017
+              name: mongodb
+          volumeMounts:
+            - name: mongodb-persistent-storage
+              mountPath: /data/db
+            - name: mongodb-secret-mount
+              mountPath: /etc/mongo-credentials
+            - name: mongodb-config-mount
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: mongodb-persistent-storage
+          persistentVolumeClaim:
+            claimName: mongodb-pv-claim
+        - name: mongodb-secret-mount
+          secret:
+            secretName: mongodb-secret
+        - name: mongodb-config-mount
+          configMap:
+            name: mongodb-config
+            items:
+              - key: mongo.conf
+                path: mongo.conf
