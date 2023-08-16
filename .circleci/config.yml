@@ -15,7 +15,17 @@ jobs:
       # Install hadolint
       - run: docker pull hadolint/hadolint
       # Menjalankan lint
-      - run: docker run --rm -i ghcr.io/hadolint/hadolint < ./Dockerfile
+      - run: docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
+  # Job dengan nama 'test-app' yang akan menggunakan image 'cimg/go:1.19.3' dari circleci,
+  # image ini akan menggunakan image ubuntu yang terinstall git dan go
+  test-app:
+    docker:
+      - image: cimg/go:1.19.3
+    steps:
+      # Checkout dari repo git, source code akan di clone ke container
+      - checkout
+      # Menjalankan tes
+      - run: cd karsajobs && go test -v -short --count=1 $(go list ./...)
   # Job dengan nama 'build-app-karsajobs' yang akan menggunakan image 'cimg/base:stable' dari circleci,
   # image ini akan menggunakan image ubuntu yang terinstall git
   build-app-karsajobs:
@@ -36,7 +46,6 @@ jobs:
       - run: docker push ghcr.io/hann315/karsajobs:latest
 
 workflows:
-  # Workflow backend akan menjalankan 3 job secara berurutan, yaitu lint-backend-dockerfile, test-app, dan build-app-karsajobs
   backend-workflows:
     jobs:
       - lint-backend-dockerfile
