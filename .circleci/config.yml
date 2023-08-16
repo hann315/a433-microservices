@@ -1,0 +1,36 @@
+# Versi dari file config circleci
+version: 2.1
+
+jobs:
+  # Job dengan nama 'build-app-karsajobs-ui' yang akan menggunakan image 'cimg/base:stable' dari circleci,
+  # image ini akan menggunakan image ubuntu yang terinstall git
+  lint-backend-dockerfile:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      # Checkout dari repo git, source code akan di clone ke container
+      - checkout
+      # Membuat environment docker remote, sehingga perintah docker bisa digunakan
+      - setup_remote_docker
+      # Install hadolint
+      - run: docker pull hadolint/hadolint
+      # Menjalankan lint
+      - run: docker run --rm -i ghcr.io/hadolint/hadolint < ./Dockerfile
+  # Job dengan nama 'build-app-karsajobs' yang akan menggunakan image 'cimg/base:stable' dari circleci,
+  # image ini akan menggunakan image ubuntu yang terinstall git
+  build-app-karsajobs:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      # Checkout dari repo git, source code akan di clone ke container
+      - checkout
+      # Membuat environment docker remote, sehingga perintah docker bisa digunakan
+      - setup_remote_docker
+      # Build image
+      - run: docker build -t hann315/karsajobs:latest ./karsajobs
+      # Membuat image baru dengan tag baru menggunakan image source
+      - run: docker tag hann315/karsajobs:latest ghcr.io/hann315/karsajobs:latest
+      # Login ke github
+      - run: echo $GITHUB_TOKEN | docker login ghcr.io -u hann315 --password-stdin
+      # Push image ke github packages
+      - run: docker push ghcr.io/hann315/karsajobs:latest
