@@ -1,0 +1,97 @@
+# Versi dari file config circleci
+version: 2.1
+
+jobs:
+  # Job dengan nama 'lint-frontend-dockerfile' yang akan menggunakan image 'cimg/base:stable' dari circleci,
+  # image ini akan menggunakan image ubuntu yang terinstall git
+  lint-frontend-dockerfile:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      # Checkout dari repo git, source code akan di clone ke container
+      - checkout
+      # Membuat environment docker remote, sehingga perintah docker bisa digunakan
+      - setup_remote_docker
+      # Install hadolint
+      - run: docker pull hadolint/hadolint
+      # Menjalankan lint
+      - run: docker run --rm -i ghcr.io/hadolint/hadolint < karsajobs-ui/Dockerfile
+  # Job dengan nama 'build-app-karsajobs-ui' yang akan menggunakan image 'cimg/base:stable' dari circleci,
+  # image ini akan menggunakan image ubuntu yang terinstall git
+  lint-backend-dockerfile:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      # Checkout dari repo git, source code akan di clone ke container
+      - checkout
+      # Membuat environment docker remote, sehingga perintah docker bisa digunakan
+      - setup_remote_docker
+      # Install hadolint
+      - run: docker pull hadolint/hadolint
+      # Menjalankan lint
+      - run: docker run --rm -i ghcr.io/hadolint/hadolint < karsajobs/Dockerfile
+  # Job dengan nama 'build-app-karsajobs-ui' yang akan menggunakan image 'cimg/base:stable' dari circleci,
+  # image ini akan menggunakan image ubuntu yang terinstall git
+  build-app-karsajobs-ui:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      # Checkout dari repo git, source code akan di clone ke container
+      - checkout
+      # Membuat environment docker remote, sehingga perintah docker bisa digunakan
+      - setup_remote_docker
+      # Build image
+      - run: docker build -t hann315/karsajobs-ui:latest ./karsajobs-ui
+      # Membuat image baru dengan tag baru menggunakan image source
+      - run: docker tag hann315/karsajobs-ui:latest ghcr.io/hann315/karsajobs-ui:latest
+      # Login ke github
+      - run: echo $GITHUB_TOKEN | docker login ghcr.io -u hann315 --password-stdin
+      # Push image ke github packages
+      - run: docker push ghcr.io/hann315/karsajobs-ui:latest
+  # Job dengan nama 'test-app' yang akan menggunakan image 'cimg/go:1.19.3' dari circleci,
+  # image ini akan menggunakan image ubuntu yang terinstall git dan go
+  test-app:
+    docker:
+      - image: cimg/go:1.19.3
+    steps:
+      # Checkout dari repo git, source code akan di clone ke container
+      - checkout
+      # Menjalankan tes
+      - run: cd karsajobs && go test -v -short --count=1 $(go list ./...)
+  # Job dengan nama 'build-app-karsajobs' yang akan menggunakan image 'cimg/base:stable' dari circleci,
+  # image ini akan menggunakan image ubuntu yang terinstall git
+  build-app-karsajobs:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      # Checkout dari repo git, source code akan di clone ke container
+      - checkout
+      # Membuat environment docker remote, sehingga perintah docker bisa digunakan
+      - setup_remote_docker
+      # Build image
+      - run: docker build -t hann315/karsajobs:latest ./karsajobs
+      # Membuat image baru dengan tag baru menggunakan image source
+      - run: docker tag hann315/karsajobs:latest ghcr.io/hann315/karsajobs:latest
+      # Login ke github
+      - run: echo $GITHUB_TOKEN | docker login ghcr.io -u hann315 --password-stdin
+      # Push image ke github packages
+      - run: docker push ghcr.io/hann315/karsajobs:latest
+
+workflows:
+  # Workflow frondend akan menjalankan 2 job secara berurutan, yaitu lint-frontend-dockerfile dan build-app-karsajobs-ui
+  frontend-workflows:
+    jobs:
+      - lint-frontend-dockerfile
+      - build-app-karsajobs-ui:
+          requires:
+            - lint-frontend-dockerfile
+  # Workflow backend akan menjalankan 3 job secara berurutan, yaitu lint-backend-dockerfile, test-app, dan build-app-karsajobs
+  backend-workflows:
+    jobs:
+      - lint-backend-dockerfile
+      - test-app:
+          requires:
+            - lint-backend-dockerfile
+      - build-app-karsajobs:
+          requires:
+            - test-app
