@@ -1,0 +1,11 @@
+# Membuat sebuah k8s ConfigMap dengan nama 'mongodb-config' dan memiliki data dengan key 'mongo.conf' 
+# dan value berupa string multiline yang mendefinisikan salah satu config mongodb, yaitu path dari storage.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongodb-config
+data:
+  mongo.conf: |
+    storage:
+      dbPath: /data/db

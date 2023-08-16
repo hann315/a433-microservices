@@ -1,0 +1,33 @@
+# Membuat sebuah PersistentVolume dengan nama 'mongodb-pv-volume'.
+# Volume ini akan digunakan untuk menyimpan data mongodb
+# PV ini dibuat dengan beberapa spesifikasi, seperti berkapasitas 2 gibibytes,
+# hanya bisa di-mount oleh satu node (ReadWriteOnce)
+# dan data akan disimpan di '/mnt/data/mongodb' di host.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongodb-pv-volume
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: '/mnt/data/mongodb'
+---
+# Membuat sebuah PersistentVolumeClaim dengan nama 'mongodb-pv-claim'
+# yang akan mencari PersistentVolume dengan spesifikasi 2 gibibytes, storage class manual, dan ReadWriteOnce access mode
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
