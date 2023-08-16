@@ -25,7 +25,7 @@ jobs:
       # Checkout dari repo git, source code akan di clone ke container
       - checkout
       # Menjalankan tes
-      - run: cd karsajobs && go test -v -short --count=1 $(go list ./...)
+      - run: go test -v -short --count=1 $(go list ./...)
   # Job dengan nama 'build-app-karsajobs' yang akan menggunakan image 'cimg/base:stable' dari circleci,
   # image ini akan menggunakan image ubuntu yang terinstall git
   build-app-karsajobs:
