@@ -1,0 +1,4 @@
+karsajobs back-end package: https://github.com/users/hann315/packages/container/package/karsajobs
+karsajobs front-end package: https://github.com/users/hann315/packages/container/package/karsajobs-ui
+
+Front-end branch: https://github.com/hann315/microservices/tree/karsajobs-ui
