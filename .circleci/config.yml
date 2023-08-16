@@ -37,7 +37,7 @@ jobs:
       # Membuat environment docker remote, sehingga perintah docker bisa digunakan
       - setup_remote_docker
       # Build image
-      - run: docker build -t hann315/karsajobs:latest ./karsajobs
+      - run: docker build -t hann315/karsajobs:latest .
       # Membuat image baru dengan tag baru menggunakan image source
       - run: docker tag hann315/karsajobs:latest ghcr.io/hann315/karsajobs:latest
       # Login ke github
