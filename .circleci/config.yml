@@ -15,7 +15,7 @@ jobs:
       # Install hadolint
       - run: docker pull hadolint/hadolint
       # Menjalankan lint
-      - run: docker run --rm -i ghcr.io/hadolint/hadolint < karsajobs-ui/Dockerfile
+      - run: docker run --rm -i ghcr.io/hadolint/hadolint < Dockerfile
   # Job dengan nama 'build-app-karsajobs-ui' yang akan menggunakan image 'cimg/base:stable' dari circleci,
   # image ini akan menggunakan image ubuntu yang terinstall git
   build-app-karsajobs-ui:
@@ -27,7 +27,7 @@ jobs:
       # Membuat environment docker remote, sehingga perintah docker bisa digunakan
       - setup_remote_docker
       # Build image
-      - run: docker build -t hann315/karsajobs-ui:latest ./karsajobs-ui
+      - run: docker build -t hann315/karsajobs-ui:latest .
       # Membuat image baru dengan tag baru menggunakan image source
       - run: docker tag hann315/karsajobs-ui:latest ghcr.io/hann315/karsajobs-ui:latest
       # Login ke github
