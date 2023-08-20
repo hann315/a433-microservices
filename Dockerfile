@@ -5,13 +5,13 @@ FROM node:18-alpine as builder
 WORKDIR /app
 
 # Menyalin package.json dan package-lock.json ke working directory
-COPY package* .
+COPY package* ./
 
 # Menjalankan perintah npm install
 RUN npm ci
 
 # Menyalin seluruh file JS ke working directory
-COPY *.js .
+COPY ./*.js ./
 
 # Mengekspos port 3001
 EXPOSE 3000
