@@ -1,0 +1,58 @@
+# Versi API yang digunakan untuk Service
+apiVersion: v1
+# Jenis resource yang dipakai
+kind: Service
+metadata:
+  # Nama service yang akan dibuat
+  name: shipping-service
+spec:
+  selector:
+    # Akan mencari POD dengan label app: shipping
+    app: shipping
+  ports:
+    # Protokol yang digunakan
+    - protocol: TCP
+      # Nama port
+      name: http-shipping
+      # External port yang digunakan
+      port: 3001
+      # Target port pada POD
+      targetPort: 3001
+
+---
+
+# Versi API yang digunakan untuk Deployment
+apiVersion: apps/v1
+# Jenis resource yang dipakai
+kind: Deployment
+metadata:
+  # Nama POD yang akan dibuat
+  name: shipping-deployment
+spec:
+  selector:
+    matchLabels:
+      # Label yang digunakan untuk memilih POD
+      app: shipping
+  template:
+    metadata:
+      labels:
+        # Label untuk pod yang dibuat dari template ini
+        app: shipping
+    spec:
+      containers:
+        # Nama container
+        - name: shipping-container
+          # Akan mem-pull image dari GitHub Package dengan tag latest milik hann315
+          image: ghcr.io/hann315/shipping-service:latest
+          ports:
+            # Port yang digunakan untuk container
+            - containerPort: 3001
+          env:
+            # Variabel yang menyimpan nomor port
+            - name: PORT
+              # Nomor port yang digunakan
+              value: "3001"
+            # Variabel yang menyimpan URL AMQP
+            - name: AMQP_URL
+              # Value URL AMQP
+              value: "amqp://rabbitmq-service.default.svc.cluster.local:5672"
