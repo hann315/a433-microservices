@@ -1,0 +1,22 @@
+# Versi API yang digunakan untuk Gateway
+apiVersion: networking.istio.io/v1alpha3
+# Jenis resource yang dipakai
+kind: Gateway
+metadata:
+  # Nama Gateway yang dibuat
+  name: istio-gateway
+spec:
+  selector:
+    # Memilih pod dengan label "istio: ingressgateway"
+    istio: ingressgateway
+  servers:
+    - port:
+        # Nomo port yang digunakan
+        number: 80
+        # Nama port yang digunakan
+        name: http
+        # Protokol yang digunakan
+        protocol: HTTP
+      hosts:
+        # Memilih semua host yang tersedia
+        - "*"

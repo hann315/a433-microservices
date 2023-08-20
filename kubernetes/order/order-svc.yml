@@ -1,0 +1,59 @@
+# Versi API yang digunakan untuk Service
+apiVersion: v1
+# Jenis resource yang dipakai
+kind: Service
+metadata:
+  # Nama service yang akan dibuat
+  name: order-service
+spec:
+  selector:
+    # Akan mencari POD dengan label app: order
+    app: order
+  ports:
+    # Protokol yang digunakan
+    - protocol: TCP
+      # Nama port
+      name: http-order
+      # External port yang digunakan
+      port: 3000
+      # Target port pada POD
+      targetPort: 3000
+
+---
+
+# Versi API yang digunakan untuk Deployment
+apiVersion: apps/v1
+# Jenis resource yang dipakai
+kind: Deployment
+metadata:
+  # Nama POD yang akan dibuat
+  name: order-deployment
+spec:
+  # Jumlah replika yang akan dibuat
+  replicas: 1
+  selector:
+    matchLabels:
+      # Label yang digunakan untuk memilih POD
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+        # Nama container
+        - name: order-container
+          # Akan mem-pull image dari GitHub Package dengan tag latest milik hann315
+          image: ghcr.io/hann315/order-service:latest
+          ports:
+            # Port yang digunakan untuk container
+            - containerPort: 3000
+          env:
+            # Variabel yang menyimpan nomor port
+            - name: PORT
+              # Nomor port yang digunakan
+              value: "3000"
+            # Variabel yang menyimpan URL AMQP
+            - name: AMQP_URL
+              # Value URL AMQP
+              value: "amqp://rabbitmq-service.default.svc.cluster.local:5672"

@@ -1,0 +1,122 @@
+# Versi API yang digunakan untuk PersistentVolume
+apiVersion: v1
+# Jenis resource yang dipakai
+kind: PersistentVolume
+metadata:
+  # Nama PersistentVolume yang akan dibuat
+  name: rabbitmq-pv
+spec:
+  capacity:
+    # Kapasitas rabbitmq-pv sebesar 1 gigabyte
+    storage: 1Gi
+  accessModes:
+    # Memiliki mode akses: ReadWriteOnce
+    - ReadWriteOnce
+    # Menentukan policy untuk PersistentVolume
+  persistentVolumeReclaimPolicy: Retain
+    # Menggunakan storageClassName manual untuk mengarahkan penyimpanan persisten ke pengaturan manual
+  storageClassName: manual
+  hostPath:
+    # Path pada host yang akan digunakan menyimpan data rabbitmq
+    path: /data/rabbitmq-pv
+
+---
+
+# Versi API yang digunakan untuk PersistentVolumeClaim
+apiVersion: v1
+# Jenis resource yang dipakai
+kind: PersistentVolumeClaim
+metadata:
+  # Nama PersistentVolumeClaim yang akan dibuat
+  name: rabbitmq-pvc
+spec:
+  accessModes:
+    # Memiliki mode akses: ReadWriteOnce
+    - ReadWriteOnce
+  resources:
+    requests:
+      # Melakukan request 1 gigabyte
+      storage: 1Gi
+  # Menggunakan storageClassName manual untuk mengarahkan penyimpanan persisten ke pengaturan manual
+  storageClassName: manual
+
+---
+
+# Versi API yang digunakan untuk Service
+apiVersion: v1
+# Jenis resource yang dipakai
+kind: Service
+metadata:
+  # Nama service yang akan dibuat
+  name: rabbitmq-service
+spec:
+  selector:
+    # Akan mencari POD dengan label app: rabbitmq
+    app: rabbitmq
+  ports:
+    # Protokol yang digunakan
+    - protocol: TCP
+      # Nama port
+      name: tcp-rabbitmq
+      # External port yang digunakan
+      port: 5672
+      # Target port pada POD
+      targetPort: 5672
+
+---
+
+# Versi API yang digunakan untuk StatefulSet
+apiVersion: apps/v1
+# Jenis resource yang dipakai
+kind: StatefulSet
+metadata:
+  # Nama StatefulSet yang akan dibuat
+  name: rabbitmq-statefulset
+spec:
+  # Nama layanan yang akan dijadikan headless service
+  serviceName: rabbitmq
+  # Jumlah replika yang akan dibuat
+  replicas: 1
+  selector:
+    matchLabels:
+    # Akan mencari POD dengan label app: rabbitmq
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        # Label untuk pod yang dibuat dari template ini
+        app: rabbitmq
+    spec:
+      containers:
+        # Nama container yang akan dibuat
+        - name: rabbitmq-container
+          # Image berasal dari Docker Hub
+          image: rabbitmq:3.11-management
+          ports:
+            # Target port pada POD yang akan di-expose
+            - containerPort: 5672
+              # Nama port yang di-expose
+              name: amqp
+          volumeMounts:
+            # Nama volume yang akan di-mount
+            - name: data-volume
+              # Path yang akan di-mount
+              mountPath: /data/rabbitmq
+          readinessProbe:
+            # Command yang akan dijalankan untuk readiness probe
+            exec:
+              command:
+                - sh
+                - -c
+                - rabbitmq-diagnostics ping
+            # Delay sebelum readiness probe dijalankan
+            initialDelaySeconds: 12
+            periodSeconds: 12
+            # Timeout untuk readiness probe
+            timeoutSeconds: 6
+      volumes:
+        # Nama volume yang akan digunakan
+        - name: data-volume
+          persistentVolumeClaim:
+            # Nama PersistentVolumeClaim yang akan digunakan
+            claimName: rabbitmq-pvc

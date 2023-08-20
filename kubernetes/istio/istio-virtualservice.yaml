@@ -1,0 +1,39 @@
+# Versi API yang digunakan untuk VirtualService
+apiVersion: networking.istio.io/v1alpha3
+# Jenis resource yang dipakai
+kind: VirtualService
+metadata:
+  # Nama VirtualService yang akan dibuat
+  name: istio-gateway
+spec:
+  hosts:
+    # Memilih semua host yang tersedia
+    - "*"
+  gateways:
+    # Gateway yang digunakan untuk VirtualService
+    - istio-gateway
+  http:
+    - match:
+        - uri:
+            # Matching URI ke /order
+            exact: /order
+        - uri:
+            # Matching URI ke /shipping
+            exact: /shipping 
+      route:
+        - destination:
+            # Memiliki destination host: order-service dan port: 3000
+            host: order-service
+            port:
+              # Nomor port yang digunakan
+              number: 3000
+          # Berat rute
+          weight: 100
+        - destination:
+            # Memiliki destination host: shipping-service dan port: 3001
+            host: shipping-service
+            port:
+              # Nomo port yang digunakan
+              number: 3001
+          # Berat rute
+          weight: 100
